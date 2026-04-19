@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-base: #050508;
+    --bg-surface: #0d0d14;
+    --bg-elevated: #13131e;
+
+    --accent-primary: #10b981;
+    --accent-secondary: #bef264;
+    --accent-gold: #f0c060;
+
+    --text-primary: #f0f0fa;
+    --text-secondary: #8888aa;
+    --text-muted: #444466;
+
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-glow: rgba(16, 185, 129, 0.4);
+
+    --glow-violet: 0 0 80px rgba(16, 185, 129, 0.35);
+    --glow-cyan: 0 0 60px rgba(190, 242, 100, 0.25);
+
+    /* Shadcn defaults mapped to our luxury theme for dark mode */
+    --background: 240 23% 3%;
+    --foreground: 240 20% 98%;
+    --card: 240 21% 7%;
+    --card-foreground: 240 20% 98%;
+    --popover: 240 23% 3%;
+    --popover-foreground: 240 20% 98%;
+    --primary: 252 100% 64%;
+    --primary-foreground: 240 20% 98%;
+    --secondary: 190 100% 50%;
+    --secondary-foreground: 240 23% 3%;
+    --muted: 240 20% 12%;
+    --muted-foreground: 240 20% 65%;
+    --accent: 240 20% 12%;
+    --accent-foreground: 240 20% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 15%;
+    --input: 0 0% 15%;
+    --ring: 252 100% 64%;
+    --radius: 0.75rem;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-[var(--bg-base)] text-[var(--text-primary)] antialiased;
+  }
+}
+
+/* Global Atmosphere Background Elements */
+.bg-mesh-1 {
+  background: radial-gradient(circle at top left, var(--accent-primary), transparent 600px);
+  opacity: 0.08;
+}
+
+.bg-mesh-2 {
+  background: radial-gradient(circle at top right, var(--accent-secondary), transparent 400px);
+  opacity: 0.05;
+}
+
+.bg-mesh-3 {
+  background: radial-gradient(circle at bottom center, var(--accent-primary), transparent 700px);
+  opacity: 0.04;
+}
+
+.bg-grid {
+  background-size: 60px 60px;
+  background-image: 
+    linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+  mask-image: linear-gradient(to bottom, black 20%, transparent 80%);
+}
+
+.bg-noise {
+  filter: url(#noiseFilter);
+  opacity: 0.02;
+  mix-blend-mode: overlay;
+}
