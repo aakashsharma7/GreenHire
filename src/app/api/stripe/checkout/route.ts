@@ -6,7 +6,7 @@ import { stripe, PRICING } from '@/lib/stripe'
 import { z } from 'zod'
 
 const checkoutSchema = z.object({
-  jobId: z.string().uuid(),
+  jobId: z.string().min(1),
   plan: z.enum(['single', 'bundle', 'featured']),
 })
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 
 const NAV_LINKS = [
@@ -13,6 +14,7 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -57,11 +59,28 @@ export function Navbar() {
           ))}
         </nav>
 
-        <div className="flex items-center gap-4">
-          <Link href="/login" className="hidden md:block font-body text-[14px] text-text-secondary hover:text-text-primary transition-colors" data-cursor="pointer">
-            Sign In
+        <div className="flex items-center gap-3">
+          {/* Sign In */}
+          <Link
+            href="/auth/login"
+            data-cursor="pointer"
+            className="hidden md:inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-white/[0.05] transition-all duration-200"
+          >
+            Sign in
           </Link>
-          <button 
+
+          {/* Sign Up */}
+          <Link
+            href="/auth/signup"
+            data-cursor="pointer"
+            className="hidden sm:inline-flex items-center px-4 py-2 rounded-lg text-sm font-semibold text-black bg-[var(--accent-primary)] hover:bg-[var(--accent-primary)]/90 shadow-lg shadow-[var(--accent-primary)]/20 hover:shadow-[var(--accent-primary)]/40 transition-all duration-200"
+          >
+            Sign up
+          </Link>
+
+          {/* Post a Job */}
+          <Link
+            href="/post-a-job"
             data-cursor="pointer"
             className="group relative px-5 py-2.5 rounded-lg overflow-hidden font-display text-sm font-medium text-white shadow-[0_0_15px_rgba(108,71,255,0.2)] hover:shadow-[0_0_25px_rgba(108,71,255,0.4)] transition-all"
           >
@@ -73,7 +92,7 @@ export function Navbar() {
              <span className="relative z-20 transition-colors duration-300">
                Post a Job
              </span>
-          </button>
+          </Link>
         </div>
       </div>
     </motion.header>

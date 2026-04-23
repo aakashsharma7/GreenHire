@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { supabase } from '@/lib/supabase'
+import { storage, STORAGE_BUCKET_ID } from '@/lib/appwrite'
+import { ID } from 'appwrite'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -100,20 +101,18 @@ export function PostJobForm() {
 
       // 1. Upload logo if exists
       if (logoFile) {
-        const fileExt = logoFile.name.split('.').pop()
-        const fileName = `${crypto.randomUUID()}.${fileExt}`
-        
-        const { error: uploadError } = await supabase.storage
-          .from('logos')
-          .upload(fileName, logoFile)
-
-        if (uploadError) throw new Error('Failed to upload logo: ' + uploadError.message)
-        
-        const { data: publicUrl } = supabase.storage
-          .from('logos')
-          .getPublicUrl(fileName)
+        try {
+          const res = await storage.createFile(
+            STORAGE_BUCKET_ID,
+            ID.unique(),
+            logoFile
+          )
           
-        company_logo_url = publicUrl.publicUrl
+          const fileView = storage.getFileView(STORAGE_BUCKET_ID, res.$id)
+          company_logo_url = fileView.toString()
+        } catch (uploadError: any) {
+          throw new Error('Failed to upload logo: ' + uploadError.message)
+        }
       }
 
       // 2. Create job via API endpoint

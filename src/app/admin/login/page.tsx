@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Leaf, Loader2 } from 'lucide-react'
@@ -20,17 +20,27 @@ export default function AdminLogin() {
     setLoading(true)
     setError(null)
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    })
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      })
 
-    if (error) {
-      setError(error.message)
+      const data = await res.json()
+
+      if (!res.ok) {
+        setError(data.error || 'Login failed')
+        setLoading(false)
+      } else {
+        router.push('/admin')
+        router.refresh()
+      }
+    } catch (err: any) {
+      setError('An error occurred during login')
       setLoading(false)
-    } else {
-      router.push('/admin')
-      router.refresh()
     }
   }
 

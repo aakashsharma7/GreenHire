@@ -2,7 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+
 import { Button } from '@/components/ui/button'
 import { CheckCircle2, Loader2, Frown } from 'lucide-react'
 

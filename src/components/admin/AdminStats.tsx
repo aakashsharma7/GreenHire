@@ -1,22 +1,31 @@
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { createAdminClient } from '@/lib/appwrite-server'
+import { DATABASE_ID, JOBS_COLLECTION_ID, SUBSCRIBERS_COLLECTION_ID, PAYMENTS_COLLECTION_ID } from '@/lib/appwrite'
+import { Query } from 'node-appwrite'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Briefcase, CreditCard, Users, Clock } from 'lucide-react'
 import { formatCurrency } from '@/lib/utils'
 
 export async function AdminStats() {
-  const [
-    { count: liveJobs },
-    { count: pendingJobs },
-    { count: subscribers },
-    { data: payments }
-  ] = await Promise.all([
-    supabaseAdmin.from('jobs').select('*', { count: 'exact', head: true }).eq('status', 'live'),
-    supabaseAdmin.from('jobs').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
-    supabaseAdmin.from('subscribers').select('*', { count: 'exact', head: true }),
-    supabaseAdmin.from('payments').select('amount').eq('status', 'paid')
-  ])
+  const { databases } = createAdminClient()
 
-  const revenue = (payments || []).reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
+  const [
+    liveJobsResponse,
+    pendingJobsResponse,
+    subscribersResponse,
+    paymentsResponse
+  ] = await Promise.all([
+    databases.listDocuments(DATABASE_ID, JOBS_COLLECTION_ID, [Query.equal('status', 'live'), Query.limit(1)]),
+    databases.listDocuments(DATABASE_ID, JOBS_COLLECTION_ID, [Query.equal('status', 'pending'), Query.limit(1)]),
+    databases.listDocuments(DATABASE_ID, SUBSCRIBERS_COLLECTION_ID, [Query.limit(1)]),
+    databases.listDocuments(DATABASE_ID, PAYMENTS_COLLECTION_ID, [Query.equal('status', 'paid')])
+  ]).catch(() => ([{total:0},{total:0},{total:0},{documents:[]}]))
+
+  const liveJobs = liveJobsResponse?.total || 0
+  const pendingJobs = pendingJobsResponse?.total || 0
+  const subscribers = subscribersResponse?.total || 0
+  const payments = paymentsResponse?.documents || []
+
+  const revenue = payments.reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -26,7 +35,7 @@ export async function AdminStats() {
           <Briefcase className="h-4 w-4 text-emerald-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-slate-900">{liveJobs || 0}</div>
+          <div className="text-2xl font-bold text-slate-900">{liveJobs}</div>
         </CardContent>
       </Card>
 
@@ -36,7 +45,7 @@ export async function AdminStats() {
           <Clock className="h-4 w-4 text-amber-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-slate-900">{pendingJobs || 0}</div>
+          <div className="text-2xl font-bold text-slate-900">{pendingJobs}</div>
         </CardContent>
       </Card>
 
@@ -46,7 +55,7 @@ export async function AdminStats() {
           <Users className="h-4 w-4 text-blue-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-slate-900">{subscribers || 0}</div>
+          <div className="text-2xl font-bold text-slate-900">{subscribers}</div>
         </CardContent>
       </Card>
 

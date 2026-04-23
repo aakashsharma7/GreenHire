@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { createAdminClient } from '@/lib/appwrite-server'
+import { DATABASE_ID, SUBSCRIBERS_COLLECTION_ID } from '@/lib/appwrite'
+import { Query } from 'node-appwrite'
 import { z } from 'zod'
 
 const unsubscribeSchema = z.object({
@@ -21,12 +23,22 @@ export async function POST(request: NextRequest) {
 
   const { email } = parsed.data
 
-  const { error } = await supabaseAdmin
-    .from('subscribers')
-    .delete()
-    .eq('email', email)
+  try {
+    const { databases } = createAdminClient()
+    const { documents } = await databases.listDocuments(
+      DATABASE_ID,
+      SUBSCRIBERS_COLLECTION_ID,
+      [Query.equal('email', email), Query.limit(1)]
+    )
 
-  if (error) {
+    if (documents.length > 0) {
+      await databases.deleteDocument(
+        DATABASE_ID,
+        SUBSCRIBERS_COLLECTION_ID,
+        documents[0].$id
+      )
+    }
+  } catch (error) {
     return NextResponse.json({ error: 'Failed to unsubscribe' }, { status: 500 })
   }
 

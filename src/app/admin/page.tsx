@@ -2,7 +2,9 @@ import { Metadata } from 'next'
 import { redirect } from 'next/navigation'
 import { AdminStats } from '@/components/admin/AdminStats'
 import { AdminJobTable } from '@/components/admin/AdminJobTable'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { createAdminClient } from '@/lib/appwrite-server'
+import { DATABASE_ID, JOBS_COLLECTION_ID } from '@/lib/appwrite'
+import { Query } from 'node-appwrite'
 import { LogOut } from 'lucide-react'
 
 export const metadata: Metadata = {
@@ -11,11 +13,16 @@ export const metadata: Metadata = {
 }
 
 export default async function AdminDashboard() {
+  const { databases } = createAdminClient()
+
   // Fetch jobs
-  const [{ data: pendingJobs }, { data: liveJobs }] = await Promise.all([
-    supabaseAdmin.from('jobs').select('*').eq('status', 'pending').order('created_at', { ascending: false }),
-    supabaseAdmin.from('jobs').select('*').eq('status', 'live').order('created_at', { ascending: false }).limit(50),
-  ])
+  const [pendingJobsResponse, liveJobsResponse] = await Promise.all([
+    databases.listDocuments(DATABASE_ID, JOBS_COLLECTION_ID, [Query.equal('status', 'pending'), Query.orderDesc('created_at')]),
+    databases.listDocuments(DATABASE_ID, JOBS_COLLECTION_ID, [Query.equal('status', 'live'), Query.orderDesc('created_at'), Query.limit(50)])
+  ]).catch(() => ([{documents:[]}, {documents:[]}]))
+
+  const pendingJobs = (pendingJobsResponse?.documents?.map(d => ({...d, id: d.$id})) || []) as any[]
+  const liveJobs = (liveJobsResponse?.documents?.map(d => ({...d, id: d.$id})) || []) as any[]
 
   return (
     <div className="min-h-screen bg-slate-50 py-8">

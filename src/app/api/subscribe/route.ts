@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { supabaseAdmin } from '@/lib/supabase-server'
+import { createAdminClient } from '@/lib/appwrite-server'
+import { DATABASE_ID, SUBSCRIBERS_COLLECTION_ID } from '@/lib/appwrite'
+import { Query } from 'node-appwrite'
 import { resend, FROM_EMAIL } from '@/lib/resend'
 import { WelcomeEmail } from '@/emails/WelcomeEmail'
 import { z } from 'zod'
@@ -46,14 +48,40 @@ export async function POST(request: NextRequest) {
   const token = crypto.randomUUID()
 
   // Upsert subscriber
-  const { error } = await supabaseAdmin
-    .from('subscribers')
-    .upsert(
-      { email, confirmation_token: token, confirmed: false },
-      { onConflict: 'email', ignoreDuplicates: false }
+  // Check if subscriber exists
+  let existingSubscriber = null
+  try {
+    const { databases } = createAdminClient()
+    const { documents } = await databases.listDocuments(
+      DATABASE_ID,
+      SUBSCRIBERS_COLLECTION_ID,
+      [Query.equal('email', email), Query.limit(1)]
     )
+    if (documents.length > 0) {
+      existingSubscriber = documents[0]
+    }
+  } catch (err) {
+    console.error('Error fetching subscriber:', err)
+  }
 
-  if (error) {
+  try {
+    const { databases } = createAdminClient()
+    if (existingSubscriber) {
+      await databases.updateDocument(
+        DATABASE_ID,
+        SUBSCRIBERS_COLLECTION_ID,
+        existingSubscriber.$id,
+        { confirmation_token: token, confirmed: false }
+      )
+    } else {
+      await databases.createDocument(
+        DATABASE_ID,
+        SUBSCRIBERS_COLLECTION_ID,
+        'unique()',
+        { email, confirmation_token: token, confirmed: false }
+      )
+    }
+  } catch (error) {
     return NextResponse.json({ error: 'Failed to subscribe' }, { status: 500 })
   }
 
