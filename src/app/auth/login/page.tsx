@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { SocialAuthButtons } from '@/components/auth/SocialAuthButtons'
 import { Leaf, Eye, EyeOff, ArrowRight, Loader2 } from 'lucide-react'
 
-export default function LoginPage() {
+// Inner component isolates useSearchParams() so the Suspense boundary works correctly
+function LoginInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [email, setEmail] = useState('')
@@ -72,17 +73,14 @@ export default function LoginPage() {
 
         {/* Card */}
         <div className="rounded-2xl border border-white/[0.08] bg-[var(--bg-surface)] backdrop-blur-md p-6 shadow-2xl shadow-black/50">
-          {/* Social buttons */}
           <SocialAuthButtons mode="login" />
 
-          {/* Divider */}
           <div className="relative my-5 flex items-center">
             <div className="flex-1 h-px bg-white/[0.08]" />
             <span className="px-3 text-xs text-[var(--text-muted)] uppercase tracking-wider">or</span>
             <div className="flex-1 h-px bg-white/[0.08]" />
           </div>
 
-          {/* Email / Password Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
               <div className="px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
@@ -153,7 +151,6 @@ export default function LoginPage() {
           </form>
         </div>
 
-        {/* Footer link */}
         <p className="text-center text-sm text-[var(--text-secondary)] mt-5">
           Don't have an account?{' '}
           <Link href="/auth/signup" className="text-[var(--accent-primary)] hover:text-[var(--accent-primary)]/80 font-medium transition-colors">
@@ -169,5 +166,21 @@ export default function LoginPage() {
         </p>
       </div>
     </div>
+  )
+}
+
+// Exported page — wraps in Suspense as required by Next.js 14 when
+// useSearchParams() is used inside a Client Component
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 className="w-6 h-6 animate-spin text-[var(--accent-primary)]" />
+        </div>
+      }
+    >
+      <LoginInner />
+    </Suspense>
   )
 }

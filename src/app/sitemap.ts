@@ -3,6 +3,10 @@ import { createAdminClient } from '@/lib/appwrite-server'
 import { DATABASE_ID, JOBS_COLLECTION_ID } from '@/lib/appwrite'
 import { Query } from 'node-appwrite'
 
+// Force dynamic so this is generated at request-time, not build-time.
+// Appwrite credentials are only available as real env vars at runtime on Vercel.
+export const dynamic = 'force-dynamic'
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://greenhire.com'
 
